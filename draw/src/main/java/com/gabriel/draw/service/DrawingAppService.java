@@ -1,29 +1,24 @@
 package com.gabriel.draw.service;
 
+import com.gabriel.draw.model.Line;
 import com.gabriel.drawfx.DrawMode;
 import com.gabriel.drawfx.ShapeMode;
 import com.gabriel.drawfx.model.Drawing;
 import com.gabriel.drawfx.model.Shape;
 import com.gabriel.drawfx.service.AppService;
-import com.gabriel.drawfx.service.MoverService;
-import com.gabriel.drawfx.service.ScalerService;
 
 import java.awt.*;
 
-public class  DrawingAppService implements AppService {
-    final private Drawing drawing;
+public class DrawingAppService implements AppService {
+
+    private final Drawing drawing;
     private Color color;
-    Color fill;
+    private Color fill;
     private ShapeMode shapeMode = ShapeMode.Line;
     private DrawMode drawMode = DrawMode.Idle;
 
-    MoverService moverService;
-    ScalerService scalerService;
-
-    public DrawingAppService(){
+    public DrawingAppService() {
         drawing = new Drawing();
-        moverService = new MoverService();
-        scalerService = new ScalerService();
     }
 
     @Override
@@ -63,16 +58,34 @@ public class  DrawingAppService implements AppService {
 
     @Override
     public void setFill(Color color) {
-        this.fill = fill;
+        this.fill = color;
     }
 
     @Override
     public void move(Shape shape, Point newLoc) {
-        moverService.move(shape, newLoc);}
+        shape.setLocation(newLoc);
+    }
 
     @Override
     public void scale(Shape shape, Point newEnd) {
-        shape.setEnd(newEnd);
+        if (shape instanceof Line) {
+            // Line: update end point dynamically
+            shape.setEnd(newEnd);
+        } else {
+            // Rectangle / Ellipse: calculate width/height and adjust top-left corner
+            int startX = shape.getLocation().x;
+            int startY = shape.getLocation().y;
+
+            int width = Math.abs(newEnd.x - startX);
+            int height = Math.abs(newEnd.y - startY);
+
+            int x = Math.min(newEnd.x, startX);
+            int y = Math.min(newEnd.y, startY);
+
+            shape.setLocation(new Point(x, y));
+            shape.setWidth(width);
+            shape.setHeight(height);
+        }
     }
 
     @Override
